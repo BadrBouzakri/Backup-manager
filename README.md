@@ -14,13 +14,40 @@ Une application web Flask pour la gestion des sauvegardes OneDrive sur Debian.
 
 ## Prérequis
 
-- Python 3.8+
-- Flask et extensions
-- Rclone installé et configuré
+- Docker et Docker Compose (pour le déploiement avec Docker)
+- OU Python 3.8+, Flask et extensions, Rclone pour une installation manuelle
 - Debian ou dérivé Linux
 - Accès SuperUtilisateur (pour les opérations de montage)
 
-## Installation
+## Installation avec Docker (recommandé)
+
+1. Cloner le dépôt :
+```bash
+git clone https://github.com/BadrBouzakri/Backup-manager.git
+cd Backup-manager
+```
+
+2. Créer un fichier .env à partir de .env.example :
+```bash
+cp .env.example .env
+```
+Éditez le fichier .env selon vos besoins.
+
+3. Lancer l'application avec Docker Compose :
+```bash
+docker-compose up -d
+```
+
+4. L'application sera accessible à l'adresse : http://localhost:5000
+   - Nom d'utilisateur administrateur par défaut : `admin`
+   - Mot de passe par défaut : `admin`
+
+5. Pour configurer Rclone pour OneDrive, vous pouvez exécuter :
+```bash
+docker-compose exec web rclone config
+```
+
+## Installation manuelle
 
 1. Cloner le dépôt :
 ```bash
@@ -68,65 +95,59 @@ db.session.commit()
 exit()
 ```
 
-## Exécution
-
-Pour démarrer l'application :
+6. Démarrer l'application :
 ```bash
 python run.py
 ```
 
-L'application sera accessible à l'adresse : http://localhost:5000
+## Utilisation des montages OneDrive avec Docker
 
-## Configuration pour la production
+Pour que les montages OneDrive fonctionnent correctement avec Docker, vous devez lancer le conteneur avec les privilèges appropriés :
 
-En production, il est recommandé d'utiliser Gunicorn et Nginx :
+1. Le conteneur est configuré avec `--cap-add SYS_ADMIN` et `--device /dev/fuse:/dev/fuse`
+2. L'option `--security-opt apparmor:unconfined` est ajoutée pour contourner les restrictions AppArmor
 
-1. Installer Gunicorn :
+Pour configurer un nouvel accès OneDrive dans Docker :
+
+1. Exécutez la commande de configuration Rclone :
 ```bash
-pip install gunicorn
+docker-compose exec web rclone config
 ```
 
-2. Créer un fichier de service systemd `/etc/systemd/system/backup-manager.service` :
-```
-[Unit]
-Description=Backup Manager
-After=network.target
+2. Suivez les instructions pour ajouter un nouveau "remote" pour OneDrive
+3. Le fichier de configuration sera stocké dans le volume persistant
 
-[Service]
-User=www-data
-WorkingDirectory=/chemin/vers/Backup-manager
-ExecStart=/chemin/vers/Backup-manager/venv/bin/gunicorn -w 4 -b 127.0.0.1:5000 run:app
-Restart=always
+## Sauvegarde et restauration des données Docker
 
-[Install]
-WantedBy=multi-user.target
-```
+Pour sauvegarder l'ensemble de l'application :
 
-3. Configurer Nginx comme proxy inverse :
-```
-server {
-    listen 80;
-    server_name votre-domaine.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-4. Activer et démarrer le service :
 ```bash
-sudo systemctl enable backup-manager
-sudo systemctl start backup-manager
+# Sauvegarde des volumes
+docker run --rm -v backup-manager_postgres-data:/dbdata -v $(pwd):/backup ubuntu tar czf /backup/postgres-data.tar.gz /dbdata
+docker run --rm -v backup-manager_backup-storage:/storage -v $(pwd):/backup ubuntu tar czf /backup/backup-storage.tar.gz /storage
+docker run --rm -v backup-manager_backup-logs:/logs -v $(pwd):/backup ubuntu tar czf /backup/backup-logs.tar.gz /logs
+
+# Sauvegarde de la configuration
+cp -r instance backup-config
+```
+
+Pour restaurer :
+
+```bash
+# Restauration des volumes
+docker run --rm -v backup-manager_postgres-data:/dbdata -v $(pwd):/backup ubuntu bash -c "cd /dbdata && tar xzf /backup/postgres-data.tar.gz --strip 1"
+docker run --rm -v backup-manager_backup-storage:/storage -v $(pwd):/backup ubuntu bash -c "cd /storage && tar xzf /backup/backup-storage.tar.gz --strip 1"
+docker run --rm -v backup-manager_backup-logs:/logs -v $(pwd):/backup ubuntu bash -c "cd /logs && tar xzf /backup/backup-logs.tar.gz --strip 1"
+
+# Restauration de la configuration
+cp -r backup-config/instance .
 ```
 
 ## Sécurité
 
 - Assurez-vous que les permissions sont correctement configurées
-- Modifiez les mots de passe par défaut
-- Utilisez HTTPS en production
+- Modifiez les mots de passe par défaut après la première connexion
+- Utilisez HTTPS en production (configurez un reverse proxy comme Nginx avec Let's Encrypt)
 - Limitez l'accès aux fichiers de configuration sensibles
 
 ## License
