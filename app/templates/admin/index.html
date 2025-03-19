@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-cogs me-2"></i>Administration</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title"><i class="fas fa-users me-2"></i>Utilisateurs</h5>
+                                <h2 class="mt-3 mb-3">{{ user_count }}</h2>
+                                <a href="{{ url_for('main.admin_users') }}" class="btn btn-primary">
+                                    <i class="fas fa-user-cog me-1"></i>Gérer les utilisateurs
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title"><i class="fas fa-archive me-2"></i>Sauvegardes</h5>
+                                <h2 class="mt-3 mb-3">{{ backup_count }}</h2>
+                                <a href="{{ url_for('main.admin_backups') }}" class="btn btn-primary">
+                                    <i class="fas fa-hdd me-1"></i>Gérer les sauvegardes
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title"><i class="fas fa-cog me-2"></i>Paramètres</h5>
+                                <p class="mt-3 mb-3">Configuration globale de l'application</p>
+                                <a href="{{ url_for('main.admin_settings') }}" class="btn btn-primary">
+                                    <i class="fas fa-wrench me-1"></i>Configurer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activité récente -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-history me-2"></i>Activité récente</h4>
+                <a href="{{ url_for('main.admin_logs') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-list me-1"></i>Tous les journaux
+                </a>
+            </div>
+            <div class="card-body">
+                {% if logs|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Utilisateur</th>
+                                    <th>Action</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td>
+                                        {% if log.user_id %}
+                                            {% for user in users if user.id == log.user_id %}
+                                                {{ user.username }}
+                                            {% else %}
+                                                <em>ID: {{ log.user_id }}</em>
+                                            {% endfor %}
+                                        {% else %}
+                                            <em>Système</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if 'error' in log.action %}bg-danger{% elif 'success' in log.action or 'created' in log.action %}bg-success{% elif 'delete' in log.action %}bg-warning{% else %}bg-primary{% endif %}">
+                                            {{ log.action }}
+                                        </span>
+                                    </td>
+                                    <td>{{ log.message }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Aucune activité récente.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
