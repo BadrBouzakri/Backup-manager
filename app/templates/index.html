@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Tableau de bord</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header {% if mount_status %}bg-success{% else %}bg-danger{% endif %} text-white">
+                                <h5 class="mb-0">
+                                    <i class="fas {% if mount_status %}fa-check-circle{% else %}fa-times-circle{% endif %} me-2"></i>
+                                    Statut OneDrive
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if mount_status %}
+                                    <p class="mb-2">OneDrive est actuellement <strong>monté</strong> et prêt pour les sauvegardes.</p>
+                                    <form action="{{ url_for('main.unmount_onedrive_route') }}" method="POST">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-eject me-1"></i>Démonter OneDrive
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <p class="mb-2">OneDrive est actuellement <strong>non monté</strong>. Vous devez le monter avant de pouvoir créer des sauvegardes.</p>
+                                    <form action="{{ url_for('main.mount_onedrive_route') }}" method="POST">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-hdd me-1"></i>Monter OneDrive
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Actions de sauvegarde</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">Créer une nouvelle sauvegarde de votre OneDrive ou nettoyer les anciennes sauvegardes.</p>
+                                <div class="d-flex gap-2">
+                                    <form action="{{ url_for('main.create_backup') }}" method="POST">
+                                        <button type="submit" class="btn btn-primary" {% if not mount_status %}disabled{% endif %}>
+                                            <i class="fas fa-save me-1"></i>Créer une sauvegarde
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('main.clean_backups') }}" method="POST">
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-broom me-1"></i>Nettoyer les anciennes
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Liste des sauvegardes -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-archive me-2"></i>Mes sauvegardes</h4>
+            </div>
+            <div class="card-body">
+                {% if backups|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Date de création</th>
+                                    <th>Taille</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for backup in backups %}
+                                <tr>
+                                    <td>{{ backup.filename }}</td>
+                                    <td>{{ backup.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td>{{ backup.get_size_str() }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('main.download_backup', backup_id=backup.id) }}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-download me-1"></i>Télécharger
+                                            </a>
+                                            <form action="{{ url_for('main.delete_backup_route', backup_id=backup.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette sauvegarde ?');">
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash me-1"></i>Supprimer
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Aucune sauvegarde disponible. Créez votre première sauvegarde en cliquant sur le bouton "Créer une sauvegarde".
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activité récente -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-history me-2"></i>Activité récente</h4>
+            </div>
+            <div class="card-body">
+                {% if logs|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td>
+                                        <span class="badge {% if 'error' in log.action %}bg-danger{% elif 'success' in log.action or 'created' in log.action %}bg-success{% elif 'delete' in log.action %}bg-warning{% else %}bg-primary{% endif %}">
+                                            {{ log.action }}
+                                        </span>
+                                    </td>
+                                    <td>{{ log.message }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{{ url_for('main.view_logs') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-1"></i>Voir tous les journaux
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Aucune activité récente.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
