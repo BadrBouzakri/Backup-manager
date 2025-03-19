@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     unzip \
+    postgresql-client \
     && curl https://rclone.org/install.sh | bash \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -28,11 +29,17 @@ RUN mkdir -p instance storage/backups storage/mounts logs \
 # Autoriser l'utilisateur à utiliser fuse
 RUN chmod u+s /bin/fusermount
 
+# Rendre le script d'entrypoint exécutable
+RUN chmod +x docker-entrypoint.sh
+
 # Exposer le port
 EXPOSE 5000
 
 # Utiliser l'utilisateur non-root
 USER appuser
+
+# Utiliser le script d'entrypoint
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
 
 # Commande de démarrage
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]
