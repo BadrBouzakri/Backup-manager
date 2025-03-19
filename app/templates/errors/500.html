@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h1 class="display-1 text-danger"><i class="fas fa-bug"></i></h1>
+                    <h2 class="mb-3">Erreur serveur</h2>
+                    <p class="lead mb-4">Une erreur s'est produite sur le serveur. Veuillez réessayer ultérieurement ou contacter l'administrateur si le problème persiste.</p>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Retour à l'accueil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
