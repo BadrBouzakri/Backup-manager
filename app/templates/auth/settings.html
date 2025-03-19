@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-6 col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-cog me-2"></i>Paramètres utilisateur</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.settings') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Nom d'utilisateur</label>
+                        <input type="text" class="form-control" value="{{ current_user.username }}" disabled>
+                        <small class="form-text text-muted">Le nom d'utilisateur ne peut pas être modifié.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control") }}
+                        {% for error in form.email.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.onedrive_folder.label(class="form-label") }}
+                        {{ form.onedrive_folder(class="form-control") }}
+                        {% for error in form.onedrive_folder.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <small class="form-text text-muted">Si vous modifiez ce paramètre, vous devrez vous reconnecter pour que les changements prennent effet.</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.retention_days.label(class="form-label") }}
+                        {{ form.retention_days(class="form-control") }}
+                        {% for error in form.retention_days.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <small class="form-text text-muted">Nombre de jours pendant lesquels les sauvegardes sont conservées.</small>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('auth.change_password') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-key me-1"></i>Changer le mot de passe
+                    </a>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i>Retour
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
