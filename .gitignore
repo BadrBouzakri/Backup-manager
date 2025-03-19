@@ -1,0 +1,73 @@
+# Environnement Python
+venv/
+env/
+.env
+.flaskenv
+.python-version
+
+# Base de données
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Fichiers générés
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Dossiers d'application
+storage/
+logs/
+app.db
+
+# Configuration rclone
+instance/rclone.conf
+
+# Fichiers de sauvegardes
+*.tar.gz
+backups/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Fichiers IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+
+# Environnement de développement
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+.hypothesis/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
