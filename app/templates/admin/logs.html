@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="fas fa-list me-2"></i>Journaux d'activité (Admin)</h4>
+                <a href="{{ url_for('main.admin_index') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Retour
+                </a>
+            </div>
+            <div class="card-body">
+                {% if logs|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Utilisateur</th>
+                                    <th>Action</th>
+                                    <th>Message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.id }}</td>
+                                    <td>{{ log.created_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td>
+                                        {% if log.user_id %}
+                                            {% for user in users if user.id == log.user_id %}
+                                                {{ user.username }}
+                                            {% else %}
+                                                <em>ID: {{ log.user_id }}</em>
+                                            {% endfor %}
+                                        {% else %}
+                                            <em>Système</em>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if 'error' in log.action %}bg-danger{% elif 'success' in log.action or 'created' in log.action %}bg-success{% elif 'delete' in log.action %}bg-warning{% else %}bg-primary{% endif %}">
+                                            {{ log.action }}
+                                        </span>
+                                    </td>
+                                    <td>{{ log.message }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Aucun journal d'activité disponible.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
